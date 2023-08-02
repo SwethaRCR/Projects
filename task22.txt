@@ -1,0 +1,88 @@
+Copy code
+const taskInput = document.getElementById('taskInput');
+const addBtn = document.getElementById('addBtn');
+const taskList = document.getElementById('taskList');
+const remainingCount = document.getElementById('remainingCount');
+
+// Load tasks from local storage on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  tasks.forEach((task) => addTaskToList(task));
+  updateRemainingCount();
+});
+
+// Add new task
+addBtn.addEventListener('click', () => {
+  const taskText = taskInput.value.trim();
+  if (taskText !== '') {
+    const task = { text: taskText, completed: false };
+    addTaskToList(task);
+    saveTasksToLocalStorage();
+    taskInput.value = '';
+    taskInput.focus();
+    updateRemainingCount();
+  }
+});
+
+// Delete task
+taskList.addEventListener('click', (event) => {
+  if (event.target.classList.contains('delete-btn')) {
+    const listItem = event.target.closest('li');
+    const taskText = listItem.querySelector('.task-text').innerText;
+    listItem.remove();
+    deleteTaskFromLocalStorage(taskText);
+    updateRemainingCount();
+  }
+});
+
+// Mark task as completed
+taskList.addEventListener('click', (event) => {
+  if (!event.target.classList.contains('delete-btn')) {
+    const listItem = event.target.closest('li');
+    listItem.classList.toggle('completed');
+    updateRemainingCount();
+    saveTasksToLocalStorage();
+  }
+});
+
+// Helper function to add task to the list
+function addTaskToList(task) {
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <span class="task-text">${task.text}</span>
+    <button class="delete-btn">Delete</button>
+  `;
+  if (task.completed) {
+    li.classList.add('completed');
+  }
+  taskList.appendChild(li);
+}
+
+// Helper function to update remaining task count
+function updateRemainingCount() {
+  const completedTasks = document.querySelectorAll('.completed').length;
+  const totalTasks = document.querySelectorAll('li').length;
+  const remainingTasks = totalTasks - completedTasks;
+  remainingCount.textContent = remainingTasks;
+}
+
+// Helper function to save tasks to local storage
+function saveTasksToLocalStorage() {
+  const tasks = [];
+  const taskElements = document.querySelectorAll('li');
+  taskElements.forEach((taskElement) => {
+    const task = {
+      text: taskElement.querySelector('.task-text').innerText,
+      completed: taskElement.classList.contains('completed'),
+    };
+    tasks.push(task);
+  });
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Helper function to delete a task from local storage
+function deleteTaskFromLocalStorage(taskText) {
+  const tasks = JSON.parse(localStorage.getItem('tasks'));
+  const updatedTasks = tasks.filter((task) => task.text !== taskText);
+  localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+}
